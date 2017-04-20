@@ -26,6 +26,12 @@
         <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
     </activity>
+
+    <receiver android:name=".RobotShutdownReceiver">
+      <intent-filter>
+        <action android:name="com.stradigi.stradigibot.SHUTDOWN" />
+      </intent-filter>
+    </receiver>
   </application>
 
 </manifest>
