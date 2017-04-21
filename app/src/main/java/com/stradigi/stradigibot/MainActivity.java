@@ -29,6 +29,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
   private static final int DISTANCE_VALUE = 0;
   private static final int MAX_DISTANCE_FROM_OBJ = 10;
+  private SensorCallback sensorCallback;
 
   private Robot robot;
 
@@ -39,13 +40,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
-    mSensorManager.registerDynamicSensorCallback(new SensorCallback());
+    sensorCallback = new SensorCallback();
+    mSensorManager.registerDynamicSensorCallback(sensorCallback);
 
-    robot = new Robot();
-    robot.start();
+    //robot = new Robot();
+    //robot.start();
 
-    mHCSR04Driver1 = new HCSR04Driver(BoardDefaults.HCSR04_1_TRIGGER, BoardDefaults.HCSR04_1_ECHO,
-        new HCSR04Driver.SimpleEchoFilter());
+    mHCSR04Driver1 = new HCSR04Driver(BoardDefaults.HCSR04_1_TRIGGER, BoardDefaults.HCSR04_1_ECHO, new HCSR04Driver.SimpleEchoFilter());
 
     shutdownReceiver = new BroadcastReceiver() {
       @Override public void onReceive(Context context, Intent intent) {
@@ -81,12 +82,21 @@ public class MainActivity extends Activity implements SensorEventListener {
   }
 
   @Override protected void onStop() {
-    robot.shutDown();
+    super.onStop();
+   // robot.shutDown();
+    Log.i(TAG, "********* ONSTOP ************");
     if (shutdownReceiver != null) {
       LocalBroadcastManager.getInstance(this).unregisterReceiver(shutdownReceiver);
       shutdownReceiver = null;
     }
-    super.onStop();
+
+    mSensorManager.unregisterDynamicSensorCallback(sensorCallback);
+    mSensorManager.unregisterListener(this);
+  }
+
+  @Override protected void onDestroy() {
+    super.onDestroy();
+    Log.i(TAG, "********* ONDESTROY ************");
   }
 
   private class SensorCallback extends SensorManager.DynamicSensorCallback {
@@ -99,7 +109,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override public void onDynamicSensorDisconnected(Sensor sensor) {
       Log.i(TAG, sensor.getName() + " has been disconnected");
-      mSensorManager.unregisterListener(MainActivity.this);
+      //mSensorManager.unregisterListener(MainActivity.this);
     }
   }
 
@@ -109,20 +119,22 @@ public class MainActivity extends Activity implements SensorEventListener {
     float maxRange = event.sensor.getMaximumRange();
     float currentDistanceToObj = event.values[DISTANCE_VALUE];
 
+    Log.i("TEST", "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(currentDistanceToObj));
+
     /**
      * If the value is equal to the maximum range of the sensor, it's safe to assume that there's nothing nearby.
      * Conversely, if it is less than the maximum range, it means that there is something nearby
      */
     if (currentDistanceToObj >= maxRange) {
       //Robot go forward!
-      robot.forward();
+      //robot.forward();
     } else if (currentDistanceToObj <= MAX_DISTANCE_FROM_OBJ) {
       //robot move backward
       //Should have some logic to turn left or right..
-      robot.backward();
+      //robot.backward();
     }
 
-    Log.i("TEST", String.valueOf(currentDistanceToObj));
+
   }
 
   @Override public void onAccuracyChanged(Sensor sensor, int accuracy) {
