@@ -43,12 +43,14 @@ public class HCSR04Driver implements AutoCloseable {
 
   private String mTrigger = null;
   private String mEcho = null;
+  private String mName = SENSOR_NAME;
   private DistanceFilter mFilter;
 
-  public HCSR04Driver(String gpioTrigger, String gpioEcho, DistanceFilter filter) {
+  public HCSR04Driver(String gpioTrigger, String gpioEcho, String name, DistanceFilter filter) {
     mTrigger = gpioTrigger;
     mEcho = gpioEcho;
     mFilter = filter;
+    mName = name;
   }
 
   @Override
@@ -101,7 +103,7 @@ public class HCSR04Driver implements AutoCloseable {
       if (mUserSensor == null) {
         mUserSensor = UserSensor.builder()
             .setType(Sensor.TYPE_PROXIMITY)
-            .setName(SENSOR_NAME)
+            .setName(mName)
             .setVendor(SENSOR_VENDOR)
             .setVersion(SENSOR_VERSION)
             .setMaxRange(SENSOR_MAX_RANGE)

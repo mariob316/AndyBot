@@ -65,6 +65,10 @@ public class Robot implements RobotInterface {
     right(DEFAULT_SPEED);
   }
 
+  public void sleep(int time) {
+
+  }
+
   @Override public synchronized void forward(@IntRange(from = 0, to = 255) int speed) {
     setMotorSpeed(speed);
     if (!robotThread.isAlive()) {
