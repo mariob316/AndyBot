@@ -74,6 +74,66 @@ public class HCSR04 implements AutoCloseable {
     mTimer = null;
   }
 
+  int keepBusy = 0;
+  long time1;
+  long time2;
+
+  protected void readDistanceSync() throws IOException, InterruptedException {
+    // Just to be sure, set the trigger first to false
+    mTriggerPin.setValue(false);
+    Thread.sleep(0, 2000);
+
+    // Hold the trigger pin HIGH for at least 10 us
+    mTriggerPin.setValue(true);
+    Thread.sleep(0, 10000); //10 microsec
+
+    // Reset the trigger pin
+    mTriggerPin.setValue(false);
+
+    // Wait for pulse on ECHO pin
+    while (mEchoPin.getValue() == false) {
+      //long t1 = System.nanoTime();
+      //Log.d(TAG, "Echo has not arrived...");
+
+      // keep the while loop busy
+      keepBusy = 0;
+
+      //long t2 = System.nanoTime();
+      //Log.d(TAG, "diff 1: " + (t2-t1));
+    }
+    time1 = System.nanoTime();
+    Log.i(TAG, "Echo ARRIVED!");
+
+    // Wait for the end of the pulse on the ECHO pin
+    while (mEchoPin.getValue() == true) {
+      //long t1 = System.nanoTime();
+      //Log.d(TAG, "Echo is still coming...");
+
+      // keep the while loop busy
+      keepBusy = 1;
+
+      //long t2 = System.nanoTime();
+      //Log.d(TAG, "diff 2: " + (t2-t1));
+    }
+    time2 = System.nanoTime();
+    Log.i(TAG, "Echo ENDED!");
+
+    // Measure how long the echo pin was held high (pulse width)
+    long pulseWidth = time2 - time1;
+
+    // Calculate distance in centimeters. The constants
+    // are coming from the datasheet, and calculated from the assumed speed
+    // of sound in air at sea level (~340 m/s).
+    double distance = (pulseWidth / 1000.0) / 58.23; //cm
+
+    // or we could calculate it withe the speed of the sound:
+    //double distance = (pulseWidth / 1000000000.0) * 340.0 / 2.0 * 100.0;
+    if (mOnDistanceReading != null) {
+      mOnDistanceReading.OnDistance((float) distance);
+    }
+    Log.i(TAG, "distance: " + distance + " cm");
+  }
+
   public void Resume() {
 
     if (mTimer != null) {
@@ -85,9 +145,14 @@ public class HCSR04 implements AutoCloseable {
     mTimer = new Timer();
     mTimer.schedule(new TimerTask() {
       @Override public void run() {
-        trigger();
+        // trigger();
+        try {
+          readDistanceSync();
+        } catch (Exception ex) {
+          Log.d(TAG, "io exception:" + ex.getMessage());
+        }
       }
-    }, 0, 100);
+    }, 0, 300);
   }
 
   public interface OnDistanceListener {

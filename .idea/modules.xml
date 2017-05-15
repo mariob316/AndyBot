@@ -3,8 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AdafruitMotorHat/AdafruitMotorHat.iml" filepath="$PROJECT_DIR$/AdafruitMotorHat/AdafruitMotorHat.iml" />
-      <module fileurl="file://$PROJECT_DIR$/StradigiBot.iml" filepath="$PROJECT_DIR$/StradigiBot.iml" />
+      <module fileurl="file://C:\Users\mojtabaa\AndroidStudioProjects\stradigi-robot\StradigiBot.iml" filepath="C:\Users\mojtabaa\AndroidStudioProjects\stradigi-robot\StradigiBot.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/stradigi-robot.iml" filepath="$PROJECT_DIR$/stradigi-robot.iml" />
     </modules>
   </component>
 </project>
