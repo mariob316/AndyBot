@@ -6,13 +6,13 @@ public class BoardDefaults {
 
 
   //HCSR04 Sensor pins
-  public static final String HCSR04_1_ECHO = "BCM20";
-  public static final String HCSR04_1_TRIGGER = "BCM21";
+  public static final String HCSR04_FRONT_ECHO = "BCM20";
+  public static final String HCSR04_FRONT_TRIGGER = "BCM21";
 
-  public static final String HCSR04_2_ECHO = "BCM19";
-  public static final String HCSR04_2_TRIGGER = "BCM26";
+  public static final String HCSR04_RIGHT_ECHO = "BCM27";
+  public static final String HCSR04_RIGHT_TRIGGER = "BCM22";
 
-  public static final String HCSR04_3_ECHO = "BCM5";
-  public static final String HCSR04_3_TRIGGER = "BCM6";
+  public static final String HCSR04_LEFT_ECHO = "BCM23";
+  public static final String HCSR04_LEFT_TRIGGER = "BCM24";
 
 }

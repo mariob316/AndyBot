@@ -51,15 +51,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //robot.start();
 
     mHCSR04DriverFront =
-        new HCSR04Driver(BoardDefaults.HCSR04_1_TRIGGER, BoardDefaults.HCSR04_1_ECHO, "HCSR-FRONT",
+        new HCSR04Driver(BoardDefaults.HCSR04_FRONT_TRIGGER, BoardDefaults.HCSR04_FRONT_ECHO, "HCSR-FRONT",
             null);
 
     mHCSR04DriverRight =
-        new HCSR04Driver(BoardDefaults.HCSR04_2_TRIGGER, BoardDefaults.HCSR04_2_ECHO, "HCSR-RIGHT",
+        new HCSR04Driver(BoardDefaults.HCSR04_RIGHT_TRIGGER, BoardDefaults.HCSR04_RIGHT_ECHO, "HCSR-RIGHT",
             null);
 
     mHCSR04DriverLeft =
-        new HCSR04Driver(BoardDefaults.HCSR04_3_TRIGGER, BoardDefaults.HCSR04_3_ECHO, "HCSR-LEFT",
+        new HCSR04Driver(BoardDefaults.HCSR04_LEFT_TRIGGER, BoardDefaults.HCSR04_LEFT_ECHO, "HCSR-LEFT",
             null);
 
     shutdownReceiver = new BroadcastReceiver() {
