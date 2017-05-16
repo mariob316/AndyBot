@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.UUID;
 
 public class HCSR04Driver implements AutoCloseable {
 
@@ -109,6 +109,7 @@ public class HCSR04Driver implements AutoCloseable {
             .setMaxRange(SENSOR_MAX_RANGE)
             .setResolution(SENSOR_RESOLUTION)
             .setMinDelay(SENSOR_MIN_DELAY)
+            .setUuid(UUID.randomUUID())
             .setDriver(this)
             .build();
       }

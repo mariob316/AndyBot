@@ -1,6 +1,5 @@
 package com.stradigi.stradigibot;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,9 +20,12 @@ import static com.stradigi.stradigibot.RobotShutdownReceiver.SHUTDOWN_ACTION;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
+  //adb shell am broadcast -a com.stradigi.stradigibot.SHUTDOWN
+
   private static final String TAG = MainActivity.class.getSimpleName();
 
   private SensorManager mSensorManager;
+  private SensorManager.DynamicSensorCallback dynamicSensorCallback;
 
   private HCSR04Driver mHCSR04DriverFront = null;
   private HCSR04Driver mHCSR04DriverRight = null;
@@ -31,7 +33,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
   private static final int DISTANCE_VALUE = 0;
   private static final int MAX_DISTANCE_FROM_OBJ = 10;
-  private SensorCallback sensorCallback;
 
   private Robot robot;
 
@@ -45,11 +46,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
-    mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-
-    sensorCallback = new SensorCallback();
-    mSensorManager.registerDynamicSensorCallback(sensorCallback);
 
     // robot = new Robot();
     //robot.start();
@@ -74,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       }
     };
 
+    registerSensorListeners();
+
     //bluetoothController = new BluetoothController(this);
     //bluetoothController.startScan();
   }
@@ -84,24 +82,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
   @Override protected void onResume() {
     super.onResume();
-    try {
-      //mHCSR04DriverFront.registerSensor();
-      // mHCSR04DriverRight.registerSensor();
-      mHCSR04DriverLeft.registerSensor();
-    } catch (IOException e) {
-      Log.e(TAG, e.getMessage(), e);
-    }
+    registerSensors();
   }
 
   @Override protected void onPause() {
+    unregister();
     super.onPause();
-    try {
-      //mHCSR04DriverFront.unregisterSensor();
-      // mHCSR04DriverRight.unregisterSensor();
-      mHCSR04DriverLeft.unregisterSensor();
-    } catch (IOException e) {
-      Log.e(TAG, e.getMessage(), e);
-    }
   }
 
   @Override protected void onStart() {
@@ -119,8 +105,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       shutdownReceiver = null;
     }
 
-    mSensorManager.unregisterDynamicSensorCallback(sensorCallback);
-    mSensorManager.unregisterListener(this);
+    mSensorManager.unregisterDynamicSensorCallback(dynamicSensorCallback);
     //bluetoothController.close();
   }
 
@@ -129,18 +114,50 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Log.i(TAG, "********* ONDESTROY ************");
   }
 
-  private class SensorCallback extends SensorManager.DynamicSensorCallback {
-    @Override public void onDynamicSensorConnected(Sensor sensor) {
-      Log.i(TAG, sensor.getName() + " has been connected");
-      if (sensor.getType() == Sensor.TYPE_PROXIMITY) {
-        mSensorManager.registerListener(MainActivity.this, sensor, SensorManager.SENSOR_DELAY_GAME);
-      }
+  private void registerSensors() {
+    try {
+      mHCSR04DriverFront.registerSensor();
+      mHCSR04DriverRight.registerSensor();
+      mHCSR04DriverLeft.registerSensor();
+    } catch (IOException e) {
+      Log.e(TAG, e.getMessage(), e);
     }
+  }
 
-    @Override public void onDynamicSensorDisconnected(Sensor sensor) {
-      Log.i(TAG, sensor.getName() + " has been disconnected");
-      //mSensorManager.unregisterListener(MainActivity.this);
+  public void unregister() {
+    try {
+      mHCSR04DriverFront.unregisterSensor();
+      mHCSR04DriverRight.unregisterSensor();
+      mHCSR04DriverLeft.unregisterSensor();
+    } catch (IOException e) {
+      Log.e(TAG, e.getMessage(), e);
     }
+  }
+
+  private void registerSensorListeners() {
+    mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+    dynamicSensorCallback = createDynamicSensorCallback(mSensorManager);
+    mSensorManager.registerDynamicSensorCallback(dynamicSensorCallback);
+  }
+
+  private SensorManager.DynamicSensorCallback createDynamicSensorCallback(
+      final SensorManager sensorManager) {
+    return new SensorManager.DynamicSensorCallback() {
+      @Override public void onDynamicSensorConnected(Sensor sensor) {
+        super.onDynamicSensorConnected(sensor);
+        if (sensor.getType() == Sensor.TYPE_PROXIMITY) {
+          sensorManager.registerListener(MainActivity.this, sensor,
+              SensorManager.SENSOR_DELAY_GAME);
+        }
+      }
+
+      @Override public void onDynamicSensorDisconnected(Sensor sensor) {
+        if (sensor.getType() == Sensor.TYPE_PROXIMITY) {
+          sensorManager.unregisterListener(MainActivity.this);
+        }
+        super.onDynamicSensorDisconnected(sensor);
+      }
+    };
   }
 
   @Override public void onSensorChanged(SensorEvent event) {
