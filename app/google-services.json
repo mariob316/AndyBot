@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "349527525313",
+    "firebase_url": "https://stradigibot.firebaseio.com",
+    "project_id": "stradigibot",
+    "storage_bucket": "stradigibot.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:349527525313:android:4ad844de9ece40e9",
+        "android_client_info": {
+          "package_name": "com.stradigi.stradigibot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "349527525313-44dthe354shgb8eql5j4sbl9sc93h45s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC01_bjeb3W06Lh5hJqfEve3ttOVi8ubz4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

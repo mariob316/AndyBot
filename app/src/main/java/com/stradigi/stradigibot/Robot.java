@@ -31,13 +31,17 @@ public class Robot implements RobotInterface {
 
   private AdafruitMotorHat mh;
 
-  @ICommand private int command = 0;
-  private int speed;
-  private boolean run = true;
+  @ICommand private volatile int command = 0;
+  private volatile int speed;
+  private volatile boolean run = false;
   private static final int PERIOD = 255;
 
   public Robot() {
     this.mh = new AdafruitMotorHat();
+    setMotorSpeed(DEFAULT_SPEED);
+  }
+
+  public void start() {
     robotThread.start();
   }
 
@@ -45,40 +49,83 @@ public class Robot implements RobotInterface {
     return Math.max(0, Math.min(255, speed));
   }
 
+  public void forward() {
+    forward(DEFAULT_SPEED);
+  }
+
+  public void backward() {
+    backward(DEFAULT_SPEED);
+  }
+
+  public void left() {
+    left(DEFAULT_SPEED);
+  }
+
+  public void right() {
+    right(DEFAULT_SPEED);
+  }
+
+  public void sleep(int time) {
+
+  }
+
   @Override public synchronized void forward(@IntRange(from = 0, to = 255) int speed) {
-    command = FORWARD;
-    this.speed = speed;
     setMotorSpeed(speed);
+    if (!robotThread.isAlive()) {
+      goForward();
+      return;
+    }
+
+    command = FORWARD;
+    run = true;
   }
 
   @Override public synchronized void backward(@IntRange(from = 0, to = 255) int speed) {
-    command = BACKWARD;
-    this.speed = speed;
     setMotorSpeed(speed);
+    if (!robotThread.isAlive()) {
+      goBackwards();
+      return;
+    }
+
+    command = BACKWARD;
+    run = true;
   }
 
   @Override public synchronized void left(@IntRange(from = 0, to = 255) int speed) {
-    command = LEFT;
-    this.speed = speed;
     setMotorSpeed(speed);
+    if (!robotThread.isAlive()) {
+      goLeft();
+      return;
+    }
+
+    command = LEFT;
+    run = true;
   }
 
   @Override public synchronized void right(@IntRange(from = 0, to = 255) int speed) {
-    command = RIGHT;
-    this.speed = speed;
     setMotorSpeed(speed);
+    if (!robotThread.isAlive()) {
+      goRight();
+      return;
+    }
+
+    command = RIGHT;
+    run = true;
   }
 
   @Override public synchronized void stop() {
-    command = STOP;
-    this.speed = 0;
     setMotorSpeed(0);
+    stopAll();
+    command = STOP;
+    run = false;
   }
 
   public void shutDown() {
     Log.i(TAG, "!!!!Shutdown!!");
     run = false;
-    robotThread.interrupt();
+    if (robotThread.isAlive()) {
+      robotThread.interrupt();
+    }
     stop();
     mh.close();
   }
@@ -122,10 +169,12 @@ public class Robot implements RobotInterface {
   }
 
   private void setMotorSpeed(@IntRange(from = 0, to = 255) int speed) {
+    this.speed = speed;
     for (AdafruitDCMotor motor : mh.getMotors()) {
       motor.setSpeed(validateSpeed(speed));
     }
   }
+
 
   private Thread robotThread = new Thread(new Runnable() {
 
@@ -156,6 +205,7 @@ public class Robot implements RobotInterface {
               default:
                 break;
             }
+            TimeUnit.MICROSECONDS.sleep(PERIOD);
           }
         } catch (InterruptedException e) {
           e.printStackTrace();
@@ -163,4 +213,29 @@ public class Robot implements RobotInterface {
       }
     }
   });
+
+  public boolean isMovingForward() {
+    return getMotor(1).isGoingForwards() && getMotor(2).isGoingForwards();
+  }
+
+  public boolean isMovingBackwards() {
+    return getMotor(1).isGoingBackwards() && getMotor(2).isGoingBackwards();
+  }
+
+  public boolean isTurningLeft() {
+    return getMotor(1).isGoingBackwards() && getMotor(2).isGoingForwards();
+  }
+
+  public boolean isTurningRight() {
+    return getMotor(1).isGoingForwards() && getMotor(2).isGoingBackwards();
+  }
+
+  public boolean isStopped() {
+    for (AdafruitDCMotor motor : mh.getMotors()) {
+      if (motor.isRunning()) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
