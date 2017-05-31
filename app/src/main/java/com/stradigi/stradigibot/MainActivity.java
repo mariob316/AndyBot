@@ -47,8 +47,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    // robot = new Robot();
-    //robot.start();
+     robot = new Robot();
+    robot.start();
 
     mHCSR04DriverFront =
         new HCSR04Driver(BoardDefaults.HCSR04_FRONT_TRIGGER, BoardDefaults.HCSR04_FRONT_ECHO, "HCSR-FRONT",
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       }
     };
 
-    registerSensorListeners();
+   // registerSensorListeners();
 
     //bluetoothController = new BluetoothController(this);
     //bluetoothController.startScan();
@@ -82,11 +82,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
   @Override protected void onResume() {
     super.onResume();
-    registerSensors();
+    robot.forward();
+   // registerSensors();
   }
 
   @Override protected void onPause() {
-    unregister();
+    //unregister();
     super.onPause();
   }
 
@@ -98,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
   @Override protected void onStop() {
     super.onStop();
-    // robot.shutDown();
+     robot.shutDown();
     Log.i(TAG, "********* ONSTOP ************");
     if (shutdownReceiver != null) {
       LocalBroadcastManager.getInstance(this).unregisterReceiver(shutdownReceiver);
