@@ -32,7 +32,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private HCSR04Driver mHCSR04DriverLeft = null;
 
   private static final int DISTANCE_VALUE = 0;
-  private static final int MAX_DISTANCE_FROM_OBJ = 10;
+  private static final int MAX_DISTANCE_FROM_OBJ = 12;
+  private static final int SAFE_DISTANCE_TO_OBJ = 30;
 
   private Robot robot;
 
@@ -47,20 +48,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-     robot = new Robot();
+    robot = new Robot();
     robot.start();
 
     mHCSR04DriverFront =
-        new HCSR04Driver(BoardDefaults.HCSR04_FRONT_TRIGGER, BoardDefaults.HCSR04_FRONT_ECHO, "HCSR-FRONT",
-            null);
+        new HCSR04Driver(BoardDefaults.HCSR04_FRONT_TRIGGER, BoardDefaults.HCSR04_FRONT_ECHO,
+            "HCSR-FRONT", null);
 
     mHCSR04DriverRight =
-        new HCSR04Driver(BoardDefaults.HCSR04_RIGHT_TRIGGER, BoardDefaults.HCSR04_RIGHT_ECHO, "HCSR-RIGHT",
-            null);
+        new HCSR04Driver(BoardDefaults.HCSR04_RIGHT_TRIGGER, BoardDefaults.HCSR04_RIGHT_ECHO,
+            "HCSR-RIGHT", null);
 
     mHCSR04DriverLeft =
-        new HCSR04Driver(BoardDefaults.HCSR04_LEFT_TRIGGER, BoardDefaults.HCSR04_LEFT_ECHO, "HCSR-LEFT",
-            null);
+        new HCSR04Driver(BoardDefaults.HCSR04_LEFT_TRIGGER, BoardDefaults.HCSR04_LEFT_ECHO,
+            "HCSR-LEFT", null);
 
     shutdownReceiver = new BroadcastReceiver() {
       @Override public void onReceive(Context context, Intent intent) {
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       }
     };
 
-   // registerSensorListeners();
+    registerSensorListeners();
 
     //bluetoothController = new BluetoothController(this);
     //bluetoothController.startScan();
@@ -83,11 +84,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   @Override protected void onResume() {
     super.onResume();
     robot.forward();
-   // registerSensors();
+    registerSensors();
   }
 
   @Override protected void onPause() {
-    //unregister();
+    unregister();
     super.onPause();
   }
 
@@ -99,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
   @Override protected void onStop() {
     super.onStop();
-     robot.shutDown();
+    robot.shutDown();
     Log.i(TAG, "********* ONSTOP ************");
     if (shutdownReceiver != null) {
       LocalBroadcastManager.getInstance(this).unregisterReceiver(shutdownReceiver);
@@ -181,22 +182,40 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float currentDistanceToObj = event.values[DISTANCE_VALUE];
     this.frontSensorDistance = currentDistanceToObj;
 
-    Log.i(event.sensor.getName(),
-        "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(
-            currentDistanceToObj));
+    //Log.i(event.sensor.getName(),
+    //    "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(
+    //        currentDistanceToObj));
 
     /**
      * If the value is equal to the maximum range of the sensor, it's safe to assume that there's nothing nearby.
      * Conversely, if it is less than the maximum range, it means that there is something nearby
      */
-    if (currentDistanceToObj >= maxRange) {
+
+    if (currentDistanceToObj >= SAFE_DISTANCE_TO_OBJ) {
+      Log.i(event.sensor.getName(), " Current Distance: " + String.valueOf(currentDistanceToObj));
       //Robot go forward!
-      //robot.forward();
-    } else if (currentDistanceToObj <= MAX_DISTANCE_FROM_OBJ) {
+      robot.forward();
+    } else if (currentDistanceToObj <= SAFE_DISTANCE_TO_OBJ
+        && currentDistanceToObj > MAX_DISTANCE_FROM_OBJ) {
+      Log.i(event.sensor.getName(), " Reducing Speed: " + String.valueOf(currentDistanceToObj));
+      robot.reduceSpeed(); //reduces the speed up to Zero
+    } else {
+      Log.i(event.sensor.getName(), " Stopped: " + String.valueOf(currentDistanceToObj));
       //robot move backward
       //Should have some logic to turn left or right..
-      //robot.stop();
+      robot.stop();
     }
+
+    //if (currentDistanceToObj <= maxRange) {
+    //  //Robot go forward!
+    //  robot.forward();
+    //}
+    //
+    //if (currentDistanceToObj <= MAX_DISTANCE_FROM_OBJ) {
+    //  //robot move backward
+    //  //Should have some logic to turn left or right..
+    //  robot.stop();
+    //}
   }
 
   private void parseLeftSensorData(SensorEvent event) {
@@ -204,22 +223,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float currentDistanceToObj = event.values[DISTANCE_VALUE];
     this.leftSensorDistance = currentDistanceToObj;
 
-    Log.i(event.sensor.getName(),
-        "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(
-            currentDistanceToObj));
-
-    /**
-     * If the value is equal to the maximum range of the sensor, it's safe to assume that there's nothing nearby.
-     * Conversely, if it is less than the maximum range, it means that there is something nearby
-     */
-    if (currentDistanceToObj >= maxRange) {
-      //Robot go forward!
-      //robot.forward();
-    } else if (currentDistanceToObj <= MAX_DISTANCE_FROM_OBJ) {
-      //robot move backward
-      //Should have some logic to turn left or right..
-      //robot.backward();
-    }
+    //Log.i(event.sensor.getName(),
+    //    "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(
+    //        currentDistanceToObj));
+    //
+    ///**
+    // * If the value is equal to the maximum range of the sensor, it's safe to assume that there's nothing nearby.
+    // * Conversely, if it is less than the maximum range, it means that there is something nearby
+    // */
+    //if (currentDistanceToObj >= maxRange) {
+    //  //Robot go forward!
+    //  //robot.forward();
+    //} else if (currentDistanceToObj <= MAX_DISTANCE_FROM_OBJ) {
+    //  //robot move backward
+    //  //Should have some logic to turn left or right..
+    //  //robot.backward();
+    //}
   }
 
   private void parseRightSensorData(SensorEvent event) {
@@ -227,22 +246,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float currentDistanceToObj = event.values[DISTANCE_VALUE];
     this.rightSensorDistance = currentDistanceToObj;
 
-    Log.i(event.sensor.getName(),
-        "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(
-            currentDistanceToObj));
-
-    /**
-     * If the value is equal to the maximum range of the sensor, it's safe to assume that there's nothing nearby.
-     * Conversely, if it is less than the maximum range, it means that there is something nearby
-     */
-    if (currentDistanceToObj >= maxRange) {
-      //Robot go forward!
-      //robot.forward();
-    } else if (currentDistanceToObj <= MAX_DISTANCE_FROM_OBJ) {
-      //robot move backward
-      //Should have some logic to turn left or right..
-      //robot.backward();
-    }
+    //Log.i(event.sensor.getName(),
+    //    "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(
+    //        currentDistanceToObj));
+    //
+    ///**
+    // * If the value is equal to the maximum range of the sensor, it's safe to assume that there's nothing nearby.
+    // * Conversely, if it is less than the maximum range, it means that there is something nearby
+    // */
+    //if (currentDistanceToObj >= maxRange) {
+    //  //Robot go forward!
+    //  //robot.forward();
+    //} else if (currentDistanceToObj <= MAX_DISTANCE_FROM_OBJ) {
+    //  //robot move backward
+    //  //Should have some logic to turn left or right..
+    //  //robot.backward();
+    //}
   }
 
   @Override public void onAccuracyChanged(Sensor sensor, int accuracy) {
