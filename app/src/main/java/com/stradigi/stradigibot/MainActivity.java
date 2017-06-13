@@ -15,6 +15,8 @@ import android.util.Log;
 import com.stradigi.stradigibot.bluetooth.BluetoothController;
 import com.stradigi.stradigibot.sensors.hcsr04.HCSR04Driver;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.stradigi.stradigibot.RobotShutdownReceiver.SHUTDOWN_ACTION;
 
@@ -42,6 +44,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private float frontSensorDistance;
   private float leftSensorDistance;
   private float rightSensorDistance;
+
+  private List<Float> lastFrontDistances = new ArrayList<>();
+  private List<Float> lastLeftDistances = new ArrayList<>();
+  private List<Float> lastRightDistances = new ArrayList<>();
 
   private BluetoothController bluetoothController;
 
@@ -177,10 +183,32 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
   }
 
+  //// Calculate standard deviation and use as threshold to accept values
+  private float getLastValid(List<Float> list) {
+    float sum = 0;
+    for (float item : list) sum += item;
+    float avg = sum / list.size();
+    sum = 0;
+    for (float item : list) {
+      sum += (item - avg) * (item * avg);
+    }
+
+    float threshold = (float) Math.sqrt((double) (sum / list.size()));
+
+    for (int i = (list.size() - 1); i >= 0; i--) {
+      if (list.get(i) >= (avg - threshold) && list.get(i) <= (avg + threshold)) return list.get(i);
+    }
+
+    return 0;
+  }
+
   private void parseFrontSensorData(SensorEvent event) {
     float maxRange = event.sensor.getMaximumRange();
     float currentDistanceToObj = event.values[DISTANCE_VALUE];
-    this.frontSensorDistance = currentDistanceToObj;
+
+    lastFrontDistances.add(currentDistanceToObj);
+    if (lastFrontDistances.size() > 10) lastFrontDistances.remove(0);
+    this.frontSensorDistance = getLastValid(lastFrontDistances);//  currentDistanceToObj;
 
     //Log.i(event.sensor.getName(),
     //    "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(
@@ -221,7 +249,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private void parseLeftSensorData(SensorEvent event) {
     float maxRange = event.sensor.getMaximumRange();
     float currentDistanceToObj = event.values[DISTANCE_VALUE];
-    this.leftSensorDistance = currentDistanceToObj;
+
+    lastLeftDistances.add(currentDistanceToObj);
+    if (lastLeftDistances.size() > 10) lastLeftDistances.remove(0);
+    this.leftSensorDistance = getLastValid(lastLeftDistances);//  currentDistanceToObj;
 
     //Log.i(event.sensor.getName(),
     //    "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(
@@ -244,7 +275,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private void parseRightSensorData(SensorEvent event) {
     float maxRange = event.sensor.getMaximumRange();
     float currentDistanceToObj = event.values[DISTANCE_VALUE];
-    this.rightSensorDistance = currentDistanceToObj;
+
+    lastRightDistances.add(currentDistanceToObj);
+    if (lastRightDistances.size() > 10) lastRightDistances.remove(0);
+    this.rightSensorDistance = getLastValid(lastRightDistances);
 
     //Log.i(event.sensor.getName(),
     //    "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(
