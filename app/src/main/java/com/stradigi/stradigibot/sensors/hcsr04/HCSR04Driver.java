@@ -139,7 +139,7 @@ public class HCSR04Driver implements AutoCloseable {
   //by using a moving window and then averaging the values in the middle of the window
   static public class SimpleEchoFilter implements DistanceFilter {
 
-    private static final int FILER_WINDOW_= 3;
+    private static final int FILER_WINDOW_= 5;
     private static final int FILER_UPPER_CUTOFF = 2;
     private static final int FILER_LOWER_CUTOFF = 0;
 
@@ -154,16 +154,37 @@ public class HCSR04Driver implements AutoCloseable {
       distanceEchos.add(value);
 
       List<Float> sortedEchos = new ArrayList<>(distanceEchos);
-      Collections.sort(sortedEchos);
+      filtered = getLastValid(sortedEchos);
+      //Collections.sort(sortedEchos);
 
-      if(sortedEchos.size() > (FILER_LOWER_CUTOFF + FILER_UPPER_CUTOFF)) {
-        filtered = average(sortedEchos,
-            FILER_LOWER_CUTOFF, sortedEchos.size() - FILER_UPPER_CUTOFF);
-      } else {
-        filtered = average(sortedEchos, 0, sortedEchos.size());
-      }
+      //if(sortedEchos.size() > (FILER_LOWER_CUTOFF + FILER_UPPER_CUTOFF)) {
+      //  filtered = getLastValid(sortedEchos);
+      //} else {
+      //  filtered = getLastValid(sortedEchos, 0, sortedEchos.size());
+      //}
 
       return filtered;
+    }
+
+    private float getLastValid(List<Float> list) {
+      float sum = 0;
+      for (float item : list) sum += item;
+      float avg = sum / list.size();
+      sum = 0;
+      for (float item : list) {
+        sum += (item - avg) * (item * avg);
+      }
+
+
+      int listSize = list.size();
+      float threshold = (float) Math.sqrt((double) (sum / listSize));
+
+      for (int i = (listSize - 1); i >= 0; i--) {
+        Float f = list.get(i);
+        if (f >= (avg - threshold) && f <= (avg + threshold)) return f;
+      }
+
+      return 0;
     }
 
     private float average(List<Float> echos, int begin, int end) {

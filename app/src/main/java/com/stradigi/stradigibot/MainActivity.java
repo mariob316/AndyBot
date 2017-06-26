@@ -16,6 +16,7 @@ import com.stradigi.stradigibot.bluetooth.BluetoothController;
 import com.stradigi.stradigibot.sensors.hcsr04.HCSR04Driver;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static com.stradigi.stradigibot.RobotShutdownReceiver.SHUTDOWN_ACTION;
@@ -35,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
   private static final int DISTANCE_VALUE = 0;
   private static final int MAX_DISTANCE_FROM_OBJ = 12;
-  private static final int SAFE_DISTANCE_TO_OBJ = 30;
+  private static final int SAFE_DISTANCE_TO_OBJ = 60;
 
   private Robot robot;
 
@@ -45,9 +46,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private float leftSensorDistance;
   private float rightSensorDistance;
 
-  private List<Float> lastFrontDistances = new ArrayList<>();
-  private List<Float> lastLeftDistances = new ArrayList<>();
-  private List<Float> lastRightDistances = new ArrayList<>();
+  private List<Float> lastFrontDistances = new LinkedList<>();
+  private List<Float> lastLeftDistances = new LinkedList<>();
+  private List<Float> lastRightDistances = new LinkedList<>();
 
   private BluetoothController bluetoothController;
 
@@ -59,15 +60,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     mHCSR04DriverFront =
         new HCSR04Driver(BoardDefaults.HCSR04_FRONT_TRIGGER, BoardDefaults.HCSR04_FRONT_ECHO,
-            "HCSR-FRONT", null);
+            "HCSR-FRONT", new HCSR04Driver.SimpleEchoFilter());
 
-    mHCSR04DriverRight =
-        new HCSR04Driver(BoardDefaults.HCSR04_RIGHT_TRIGGER, BoardDefaults.HCSR04_RIGHT_ECHO,
-            "HCSR-RIGHT", null);
-
-    mHCSR04DriverLeft =
-        new HCSR04Driver(BoardDefaults.HCSR04_LEFT_TRIGGER, BoardDefaults.HCSR04_LEFT_ECHO,
-            "HCSR-LEFT", null);
+    //mHCSR04DriverRight =
+    //    new HCSR04Driver(BoardDefaults.HCSR04_RIGHT_TRIGGER, BoardDefaults.HCSR04_RIGHT_ECHO,
+    //        "HCSR-RIGHT", null);
+    //
+    //mHCSR04DriverLeft =
+    //    new HCSR04Driver(BoardDefaults.HCSR04_LEFT_TRIGGER, BoardDefaults.HCSR04_LEFT_ECHO,
+    //        "HCSR-LEFT", null);
 
     shutdownReceiver = new BroadcastReceiver() {
       @Override public void onReceive(Context context, Intent intent) {
@@ -125,8 +126,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private void registerSensors() {
     try {
       mHCSR04DriverFront.registerSensor();
-      mHCSR04DriverRight.registerSensor();
-      mHCSR04DriverLeft.registerSensor();
+      //mHCSR04DriverRight.registerSensor();
+      //mHCSR04DriverLeft.registerSensor();
     } catch (IOException e) {
       Log.e(TAG, e.getMessage(), e);
     }
@@ -135,8 +136,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   public void unregister() {
     try {
       mHCSR04DriverFront.unregisterSensor();
-      mHCSR04DriverRight.unregisterSensor();
-      mHCSR04DriverLeft.unregisterSensor();
+      //mHCSR04DriverRight.unregisterSensor();
+      //mHCSR04DriverLeft.unregisterSensor();
     } catch (IOException e) {
       Log.e(TAG, e.getMessage(), e);
     }
@@ -176,10 +177,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         parseFrontSensorData(event);
         return;
       case "HCSR-LEFT":
-        parseLeftSensorData(event);
+        //parseLeftSensorData(event);
         return;
       case "HCSR-RIGHT":
-        parseRightSensorData(event);
+        //parseRightSensorData(event);
     }
   }
 
@@ -193,10 +194,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       sum += (item - avg) * (item * avg);
     }
 
-    float threshold = (float) Math.sqrt((double) (sum / list.size()));
 
-    for (int i = (list.size() - 1); i >= 0; i--) {
-      if (list.get(i) >= (avg - threshold) && list.get(i) <= (avg + threshold)) return list.get(i);
+    int listSize = list.size();
+    float threshold = (float) Math.sqrt((double) (sum / listSize));
+
+    for (int i = (listSize - 1); i >= 0; i--) {
+      Float f = list.get(i);
+      if (f >= (avg - threshold) && f <= (avg + threshold)) return f;
     }
 
     return 0;
@@ -206,9 +210,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float maxRange = event.sensor.getMaximumRange();
     float currentDistanceToObj = event.values[DISTANCE_VALUE];
 
-    lastFrontDistances.add(currentDistanceToObj);
-    if (lastFrontDistances.size() > 10) lastFrontDistances.remove(0);
-    this.frontSensorDistance = getLastValid(lastFrontDistances);//  currentDistanceToObj;
+    //lastFrontDistances.add(currentDistanceToObj);
+    //if (lastFrontDistances.size() > 10) lastFrontDistances.remove(0);
+    //this.frontSensorDistance = getLastValid(lastFrontDistances);//  currentDistanceToObj;
 
     //Log.i(event.sensor.getName(),
     //    "Max Range: " + String.valueOf(maxRange) + " Current Distance: " + String.valueOf(
@@ -223,6 +227,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       Log.i(event.sensor.getName(), " Current Distance: " + String.valueOf(currentDistanceToObj));
       //Robot go forward!
       robot.forward();
+
     } else if (currentDistanceToObj <= SAFE_DISTANCE_TO_OBJ
         && currentDistanceToObj > MAX_DISTANCE_FROM_OBJ) {
       Log.i(event.sensor.getName(), " Reducing Speed: " + String.valueOf(currentDistanceToObj));
@@ -231,7 +236,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       Log.i(event.sensor.getName(), " Stopped: " + String.valueOf(currentDistanceToObj));
       //robot move backward
       //Should have some logic to turn left or right..
-      robot.stop();
+      robot.turnLeft(180);
+      //robot.stop();
     }
 
     //if (currentDistanceToObj <= maxRange) {

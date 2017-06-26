@@ -71,8 +71,8 @@ public class Robot implements RobotInterface {
   }
 
   @Override public synchronized void forward(@IntRange(from = 0, to = 255) int speed) {
-    if (isMovingForward()) return;
     setMotorSpeed(speed);
+    if (isMovingForward()) return;
     if (!robotThread.isAlive()) {
       goForward();
       return;
@@ -113,6 +113,7 @@ public class Robot implements RobotInterface {
   }
 
   @Override public synchronized void left(@IntRange(from = 0, to = 255) int speed) {
+    if (isTurningLeft()) return;
     setMotorSpeed(speed);
     if (!robotThread.isAlive()) {
       goLeft();
@@ -198,11 +199,12 @@ public class Robot implements RobotInterface {
   }
 
   public void reduceSpeed() {
+    if (speed < 0) return;
     this.speed -= 10;
     Log.d("Reduc", "Reducing speed to: " + String.valueOf(speed));
     if (this.speed < 20) {
       Log.d("Reduc", "Stopping due to speed: " + String.valueOf(speed));
-      stop();
+      turnLeft(180);
       return;
     }
     setMotorSpeed(speed);
@@ -222,7 +224,8 @@ public class Robot implements RobotInterface {
     return this.speed / conversionFactor;
   }
 
-  private void turnLeft(int degrees) {
+  public void turnLeft(int degrees) {
+    if (isTurningLeft())return;
     goLeft();
 
     double total = 2 * Math.PI * chassisDiameter;
@@ -240,7 +243,7 @@ public class Robot implements RobotInterface {
     }, timeToLeftMillis);
   }
 
-  private void turnRight(int degrees) {
+  public void turnRight(int degrees) {
     goRight();
 
     double total = 2 * Math.PI * chassisDiameter;
