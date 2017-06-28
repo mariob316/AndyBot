@@ -113,6 +113,7 @@ public class Robot implements RobotInterface {
   }
 
   @Override public synchronized void left(@IntRange(from = 0, to = 255) int speed) {
+    Log.d("LEFT", "Turn Left");
     if (isTurningLeft()) return;
     setMotorSpeed(speed);
     if (!robotThread.isAlive()) {
@@ -120,6 +121,7 @@ public class Robot implements RobotInterface {
       return;
     }
 
+    Log.d("LEFT", "About to turn Left");
     command = LEFT;
     run = true;
   }
@@ -136,7 +138,6 @@ public class Robot implements RobotInterface {
   }
 
   @Override public synchronized void stop() {
-    if (isStopped()) return;
     setMotorSpeed(0);
     stopAll();
     command = STOP;
@@ -178,7 +179,11 @@ public class Robot implements RobotInterface {
   private void goLeft() {
     int count = 0;
     for (AdafruitDCMotor motor : mh.getMotors()) {
-      motor.run((count % 2 == 0) ? AdafruitMotorHat.BACKWARD : AdafruitMotorHat.FORWARD);
+      if (count == 0 || count == 3) {
+        motor.run(AdafruitMotorHat.RELEASE);
+      } else {
+        motor.run(AdafruitMotorHat.FORWARD);
+      }
       ++count;
     }
   }
@@ -186,7 +191,11 @@ public class Robot implements RobotInterface {
   private void goRight() {
     int count = 0;
     for (AdafruitDCMotor motor : mh.getMotors()) {
-      motor.run((count % 2 == 0) ? AdafruitMotorHat.FORWARD : AdafruitMotorHat.BACKWARD);
+      if (count == 1 || count == 2) {
+        motor.run(AdafruitMotorHat.RELEASE);
+      } else {
+        motor.run(AdafruitMotorHat.FORWARD);
+      }
       ++count;
     }
   }
@@ -198,15 +207,15 @@ public class Robot implements RobotInterface {
     }
   }
 
-  public void reduceSpeed() {
-    if (speed < 0) return;
+  public synchronized void reduceSpeed() {
+    if (speed <= 10) return;
     this.speed -= 10;
-    Log.d("Reduc", "Reducing speed to: " + String.valueOf(speed));
-    if (this.speed < 20) {
-      Log.d("Reduc", "Stopping due to speed: " + String.valueOf(speed));
-      turnLeft(180);
-      return;
-    }
+    //Log.d("Reduc", "Reducing speed to: " + String.valueOf(speed));
+    //if (this.speed < 20) {
+    //  Log.d("Reduc", "Stopping due to speed: " + String.valueOf(speed));
+    //  //stop();
+    //  return;
+    //}
     setMotorSpeed(speed);
   }
 
@@ -226,6 +235,7 @@ public class Robot implements RobotInterface {
 
   public void turnLeft(int degrees) {
     if (isTurningLeft())return;
+    setMotorSpeed(DEFAULT_SPEED);
     goLeft();
 
     double total = 2 * Math.PI * chassisDiameter;
@@ -235,10 +245,11 @@ public class Robot implements RobotInterface {
     float mps = getMps();
     final long timeToLeftMillis = (long) ((1000) * (distanceShouldGo / mps));
 
+    Log.d("LEFT", "TUrning left: " + String.valueOf(timeToLeftMillis));
     /// turn left and Stop after
     new Handler().postDelayed(new Runnable() {
       @Override public void run() {
-        command = STOP;
+        stop();
       }
     }, timeToLeftMillis);
   }
@@ -282,6 +293,7 @@ public class Robot implements RobotInterface {
                 goBackwards();
                 break;
               case LEFT:
+                Log.d("CMD", "Command LEFT");
                 goLeft();
                 break;
               case RIGHT:

@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private HCSR04Driver mHCSR04DriverLeft = null;
 
   private static final int DISTANCE_VALUE = 0;
-  private static final int MAX_DISTANCE_FROM_OBJ = 12;
+  private static final int MAX_DISTANCE_FROM_OBJ = 20;
   private static final int SAFE_DISTANCE_TO_OBJ = 60;
 
   private Robot robot;
@@ -207,7 +207,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   }
 
   private void parseFrontSensorData(SensorEvent event) {
-    float maxRange = event.sensor.getMaximumRange();
     float currentDistanceToObj = event.values[DISTANCE_VALUE];
 
     //lastFrontDistances.add(currentDistanceToObj);
@@ -224,20 +223,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
      */
 
     if (currentDistanceToObj >= SAFE_DISTANCE_TO_OBJ) {
-      Log.i(event.sensor.getName(), " Current Distance: " + String.valueOf(currentDistanceToObj));
+      //Log.i(event.sensor.getName(), " Current Distance: " + String.valueOf(currentDistanceToObj));
       //Robot go forward!
       robot.forward();
 
     } else if (currentDistanceToObj <= SAFE_DISTANCE_TO_OBJ
         && currentDistanceToObj > MAX_DISTANCE_FROM_OBJ) {
-      Log.i(event.sensor.getName(), " Reducing Speed: " + String.valueOf(currentDistanceToObj));
+     // Log.i(event.sensor.getName(), " Reducing Speed: " + String.valueOf(currentDistanceToObj));
       robot.reduceSpeed(); //reduces the speed up to Zero
     } else {
-      Log.i(event.sensor.getName(), " Stopped: " + String.valueOf(currentDistanceToObj));
+      //Log.i(event.sensor.getName(), " Stopped: " + String.valueOf(currentDistanceToObj));
       //robot move backward
       //Should have some logic to turn left or right..
-      robot.turnLeft(180);
-      //robot.stop();
+     // robot.turnLeft(180);
+      robot.turnLeft(90);
     }
 
     //if (currentDistanceToObj <= maxRange) {
