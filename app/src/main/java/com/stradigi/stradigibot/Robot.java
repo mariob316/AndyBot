@@ -234,12 +234,12 @@ public class Robot implements RobotInterface {
   }
 
   public void turnLeft(int degrees) {
-    if (isTurningLeft()) return;
+    if (isTurningLeft() || isStopped()) return;
     setMotorSpeed(DEFAULT_SPEED);
     goLeft();
 
     double total = 2 * Math.PI * chassisDiameter;
-    float distanceShouldGo = (float) (total * (degrees / 360f));
+    float distanceShouldGo = (float) (total * (Math.abs(degrees) / 360f));
 
     /// lets say current speed is mps ///
     float mps = getMps();
@@ -251,7 +251,7 @@ public class Robot implements RobotInterface {
       @Override public void run() {
         stop();
       }
-    }, timeToLeftMillis);
+    }, 1000);
   }
 
   public void turnRight(int degrees) {
@@ -326,10 +326,14 @@ public class Robot implements RobotInterface {
     //  motor.run(AdafruitMotorHat.FORWARD);
     //}
 
-    return !getMotor(1).isRunning()
-        && !getMotor(4).isRunning()
-        && getMotor(2).isRunning()
-        && getMotor(3).isRunning();
+    boolean m1 = getMotor(1).isRunning();
+    boolean m2 = getMotor(2).isRunning();
+    boolean m3 = getMotor(3).isRunning();
+    boolean m4 = getMotor(4).isRunning();
+
+    Log.d(TAG, " " + m1 + " " + m2+ " " + m3+ " "+m4);
+
+    return !m1 && !m4 && m2 && m3;
   }
 
   public boolean isTurningRight() {

@@ -1,5 +1,7 @@
 package com.zugaldia.adafruit.motorhat.library;
 
+import android.util.Log;
+
 /**
  * A port of `Adafruit_DCMotor` to Android Things.
  * <p>
@@ -62,6 +64,14 @@ public class AdafruitDCMotor {
       isGoingBackwards = false;
       isGoingForwards = false;
     }
+
+    Log.d("RUN " + command, "Motor: "
+        + String.valueOf(motornum)
+        + " forward: "
+        + isGoingForwards
+        + " Back: "
+        + isGoingBackwards);
+
   }
 
   public void setSpeed(int speed) {
