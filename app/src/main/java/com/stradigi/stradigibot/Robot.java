@@ -222,7 +222,7 @@ public class Robot implements RobotInterface {
   /// Set meter per second speed ///
   //// with pWValue = 200 it goes .2 mps => conversionFactor = 200/0.2
   float conversionFactor = 1.0f;
-  float chassisDiameter = .15f; /// in meter
+  float chassisDiameter = .35f; /// in meter
 
   private void setMotorSpeedMPS(float mps) {
     this.speed = (int) (conversionFactor * mps);
@@ -234,7 +234,7 @@ public class Robot implements RobotInterface {
   }
 
   public void turnLeft(int degrees) {
-    if (isTurningLeft())return;
+    if (isTurningLeft()) return;
     setMotorSpeed(DEFAULT_SPEED);
     goLeft();
 
@@ -320,11 +320,23 @@ public class Robot implements RobotInterface {
   }
 
   public boolean isTurningLeft() {
-    return getMotor(1).isGoingBackwards() && getMotor(2).isGoingForwards();
+    //if (count == 0 || count == 3) {
+    //  motor.run(AdafruitMotorHat.RELEASE);
+    //} else {
+    //  motor.run(AdafruitMotorHat.FORWARD);
+    //}
+
+    return !getMotor(1).isRunning()
+        && !getMotor(4).isRunning()
+        && getMotor(2).isRunning()
+        && getMotor(3).isRunning();
   }
 
   public boolean isTurningRight() {
-    return getMotor(1).isGoingForwards() && getMotor(2).isGoingBackwards();
+    return getMotor(1).isRunning()
+        && getMotor(4).isRunning()
+        && !getMotor(2).isRunning()
+        && !getMotor(3).isRunning();
   }
 
   public boolean isStopped() {
