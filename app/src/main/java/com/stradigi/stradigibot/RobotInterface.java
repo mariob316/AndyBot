@@ -18,4 +18,8 @@ public interface RobotInterface{
 
   void stop();
 
+  void reduceSpeed();
+
+  void turnLeftByDegrees(int degrees);
+
 }

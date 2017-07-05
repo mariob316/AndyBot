@@ -1,5 +1,9 @@
 package com.stradigi.stradigibot;
 
+import android.arch.lifecycle.Lifecycle;
+import android.arch.lifecycle.LifecycleObserver;
+import android.arch.lifecycle.OnLifecycleEvent;
+import android.hardware.SensorEvent;
 import android.os.Handler;
 import android.support.annotation.IntDef;
 import android.support.annotation.IntRange;
@@ -15,11 +19,14 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
  * Created by Mario on 2017-04-12.
  */
 
-public class Robot implements RobotInterface {
+public class Robot implements RobotInterface, LifecycleObserver {
 
   private final static String TAG = "ROBOT";
 
-  private static final int DEFAULT_SPEED = 200;
+  public static final int DISTANCE_VALUE = 0;
+  public static final int MAX_DISTANCE_FROM_OBJ = 20;
+  public static final int SAFE_DISTANCE_TO_OBJ = 60;
+  public static final int DEFAULT_SPEED = 200;
 
   @Retention(SOURCE) @IntDef({ FORWARD, BACKWARD, LEFT, RIGHT, STOP }) private @interface ICommand {
   }
@@ -31,6 +38,7 @@ public class Robot implements RobotInterface {
   private static final int RIGHT = 4;
 
   private AdafruitMotorHat mh;
+  private RobotEyes robotEyes;
 
   @ICommand private volatile int command = 0;
   private volatile int speed;
@@ -39,10 +47,11 @@ public class Robot implements RobotInterface {
 
   public Robot() {
     this.mh = new AdafruitMotorHat();
+    this.robotEyes = new RobotEyes(this);
     setMotorSpeed(DEFAULT_SPEED);
   }
 
-  public void start() {
+  @OnLifecycleEvent(Lifecycle.Event.ON_START) void start() {
     robotThread.start();
   }
 
@@ -81,25 +90,6 @@ public class Robot implements RobotInterface {
     command = FORWARD;
     run = true;
   }
-
-  //@Override
-  //public synchronized void forwardForMillis(@IntRange(from = 0, to = 255) int speed, int forMillis) {
-  //    setMotorSpeed(speed);
-  //    if (!robotThread.isAlive()) {
-  //        goForward();
-  //        return;
-  //    }
-  //
-  //    command = FORWARD;
-  //    run = true;
-  //
-  //    new Handler().postDelayed(new Runnable() {
-  //        @Override
-  //        public void run() {
-  //            command = STOP;
-  //        }
-  //    }, forMillis);
-  //}
 
   @Override public synchronized void backward(@IntRange(from = 0, to = 255) int speed) {
     setMotorSpeed(speed);
@@ -144,8 +134,9 @@ public class Robot implements RobotInterface {
     run = false;
   }
 
-  public void shutDown() {
+  @OnLifecycleEvent(Lifecycle.Event.ON_STOP) void shutDown() {
     Log.i(TAG, "!!!!Shutdown!!");
+    robotEyes.close();
     run = false;
     if (robotThread.isAlive()) {
       robotThread.interrupt();
@@ -207,7 +198,7 @@ public class Robot implements RobotInterface {
     }
   }
 
-  public synchronized void reduceSpeed() {
+  @Override public synchronized void reduceSpeed() {
     if (speed <= 10) return;
     this.speed -= 10;
     //Log.d("Reduc", "Reducing speed to: " + String.valueOf(speed));
@@ -233,7 +224,7 @@ public class Robot implements RobotInterface {
     return this.speed / conversionFactor;
   }
 
-  public void turnLeft(int degrees) {
+  @Override public void turnLeftByDegrees(int degrees) {
     if (isTurningLeft() || isStopped()) return;
     setMotorSpeed(DEFAULT_SPEED);
     goLeft();
@@ -331,7 +322,7 @@ public class Robot implements RobotInterface {
     boolean m3 = getMotor(3).isRunning();
     boolean m4 = getMotor(4).isRunning();
 
-    Log.d(TAG, " " + m1 + " " + m2+ " " + m3+ " "+m4);
+    Log.d(TAG, " " + m1 + " " + m2 + " " + m3 + " " + m4);
 
     return !m1 && !m4 && m2 && m3;
   }
@@ -350,5 +341,9 @@ public class Robot implements RobotInterface {
       }
     }
     return true;
+  }
+
+  public void handleProximitySensorData(SensorEvent event) {
+    robotEyes.watch(event);
   }
 }
