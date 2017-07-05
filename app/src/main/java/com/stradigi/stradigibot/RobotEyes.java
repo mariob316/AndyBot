@@ -73,7 +73,7 @@ public class RobotEyes {
     float currentDistanceToObj = event.values[Robot.DISTANCE_VALUE];
 
     if (currentDistanceToObj >= Robot.SAFE_DISTANCE_TO_OBJ) {
-      //Log.i(event.sensor.getName(), " Current Distance: " + String.valueOf(currentDistanceToObj));
+      Log.i(event.sensor.getName(), " Current Distance: " + String.valueOf(currentDistanceToObj));
       //Robot go forward!
       robotInterface.forward(Robot.DEFAULT_SPEED);
     } else if (currentDistanceToObj <= Robot.SAFE_DISTANCE_TO_OBJ

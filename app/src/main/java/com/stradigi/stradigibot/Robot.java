@@ -2,6 +2,7 @@ package com.stradigi.stradigibot;
 
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
+import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.hardware.SensorEvent;
 import android.os.Handler;
@@ -45,10 +46,11 @@ public class Robot implements RobotInterface, LifecycleObserver {
   private volatile boolean run = false;
   private static final int PERIOD = 255;
 
-  public Robot() {
+  public Robot(LifecycleOwner owner) {
     this.mh = new AdafruitMotorHat();
     this.robotEyes = new RobotEyes(this);
     setMotorSpeed(DEFAULT_SPEED);
+    owner.getLifecycle().addObserver(this);
   }
 
   @OnLifecycleEvent(Lifecycle.Event.ON_START) void start() {
@@ -242,7 +244,7 @@ public class Robot implements RobotInterface, LifecycleObserver {
       @Override public void run() {
         stop();
       }
-    }, 1000);
+    }, 2000);
   }
 
   public void turnRight(int degrees) {

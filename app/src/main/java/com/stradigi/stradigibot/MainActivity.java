@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    robot = new Robot();
+    robot = new Robot(this);
     registerSensorListeners();
 
     shutdownReceiver = new BroadcastReceiver() {
