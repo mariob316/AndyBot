@@ -29,18 +29,18 @@ public class RobotEyes {
         new HCSR04Driver(BoardDefaults.HCSR04_FRONT_TRIGGER, BoardDefaults.HCSR04_FRONT_ECHO,
             "HCSR-FRONT", new HCSR04Driver.SimpleEchoFilter());
 
-    //mHCSR04DriverRight =
-    //    new HCSR04Driver(BoardDefaults.HCSR04_RIGHT_TRIGGER, BoardDefaults.HCSR04_RIGHT_ECHO,
-    //        "HCSR-RIGHT", null);
-    //
-    //mHCSR04DriverLeft =
-    //    new HCSR04Driver(BoardDefaults.HCSR04_LEFT_TRIGGER, BoardDefaults.HCSR04_LEFT_ECHO,
-    //        "HCSR-LEFT", null);
+    mHCSR04DriverRight =
+        new HCSR04Driver(BoardDefaults.HCSR04_RIGHT_TRIGGER, BoardDefaults.HCSR04_RIGHT_ECHO,
+            "HCSR-RIGHT", null);
+
+    mHCSR04DriverLeft =
+        new HCSR04Driver(BoardDefaults.HCSR04_LEFT_TRIGGER, BoardDefaults.HCSR04_LEFT_ECHO,
+            "HCSR-LEFT", null);
 
     try {
       mHCSR04DriverFront.registerSensor();
-      //mHCSR04DriverRight.registerSensor();
-      //mHCSR04DriverLeft.registerSensor();
+      mHCSR04DriverRight.registerSensor();
+      mHCSR04DriverLeft.registerSensor();
     } catch (IOException e) {
       Log.e(TAG, e.getMessage(), e);
     }
@@ -49,8 +49,8 @@ public class RobotEyes {
   public void close() {
     try {
       mHCSR04DriverFront.unregisterSensor();
-      //mHCSR04DriverRight.unregisterSensor();
-      //mHCSR04DriverLeft.unregisterSensor();
+      mHCSR04DriverRight.unregisterSensor();
+      mHCSR04DriverLeft.unregisterSensor();
     } catch (IOException e) {
       Log.e(TAG, e.getMessage(), e);
     }
@@ -62,10 +62,10 @@ public class RobotEyes {
         parseFrontSensorData(event);
         return;
       case BoardDefaults.HCSR04_LEFT_NAME:
-        //parseLeftSensorData(event);
+        parseLeftSensorData(event);
         return;
       case BoardDefaults.HCSR04_RIGHT_NAME:
-        //parseRightSensorData(event);
+        parseRightSensorData(event);
     }
   }
 
@@ -89,10 +89,12 @@ public class RobotEyes {
   private void parseLeftSensorData(SensorEvent event) {
     float maxRange = event.sensor.getMaximumRange();
     float currentDistanceToObj = event.values[Robot.DISTANCE_VALUE];
+    Log.i(event.sensor.getName(), " Current Distance: " + String.valueOf(currentDistanceToObj));
   }
 
   private void parseRightSensorData(SensorEvent event) {
     float maxRange = event.sensor.getMaximumRange();
     float currentDistanceToObj = event.values[Robot.DISTANCE_VALUE];
+    Log.i(event.sensor.getName(), " Current Distance: " + String.valueOf(currentDistanceToObj));
   }
 }

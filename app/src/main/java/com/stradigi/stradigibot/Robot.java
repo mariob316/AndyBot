@@ -27,7 +27,7 @@ public class Robot implements RobotInterface, LifecycleObserver {
   public static final int DISTANCE_VALUE = 0;
   public static final int MAX_DISTANCE_FROM_OBJ = 20;
   public static final int SAFE_DISTANCE_TO_OBJ = 60;
-  public static final int DEFAULT_SPEED = 200;
+  public static final int DEFAULT_SPEED = 120;
 
   @Retention(SOURCE) @IntDef({ FORWARD, BACKWARD, LEFT, RIGHT, STOP }) private @interface ICommand {
   }
@@ -38,6 +38,7 @@ public class Robot implements RobotInterface, LifecycleObserver {
   private static final int LEFT = 3;
   private static final int RIGHT = 4;
 
+  private final Lifecycle lifecycle;
   private AdafruitMotorHat mh;
   private RobotEyes robotEyes;
 
@@ -46,15 +47,20 @@ public class Robot implements RobotInterface, LifecycleObserver {
   private volatile boolean run = false;
   private static final int PERIOD = 255;
 
-  public Robot(LifecycleOwner owner) {
+  public Robot(Lifecycle lifecycle) {
     this.mh = new AdafruitMotorHat();
     this.robotEyes = new RobotEyes(this);
     setMotorSpeed(DEFAULT_SPEED);
-    owner.getLifecycle().addObserver(this);
+    this.lifecycle = lifecycle;
+    lifecycle.addObserver(this);
   }
 
   @OnLifecycleEvent(Lifecycle.Event.ON_START) void start() {
     robotThread.start();
+  }
+
+  @OnLifecycleEvent(Lifecycle.Event.ON_RESUME) void onResume() {
+    forward();
   }
 
   private int validateSpeed(int speed) {
@@ -145,6 +151,10 @@ public class Robot implements RobotInterface, LifecycleObserver {
     }
     stop();
     mh.close();
+  }
+
+  @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY) void unregisterObserver() {
+    lifecycle.removeObserver(this);
   }
 
   private AdafruitDCMotor getMotor(@IntRange(from = 1, to = 4) int position) {

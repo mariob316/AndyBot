@@ -42,8 +42,9 @@ public class MainActivity extends AppCompatActivity
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    robot = new Robot(this);
+
     registerSensorListeners();
+    robot = new Robot(getLifecycle());
 
     shutdownReceiver = new BroadcastReceiver() {
       @Override public void onReceive(Context context, Intent intent) {
@@ -56,7 +57,6 @@ public class MainActivity extends AppCompatActivity
 
   @Override protected void onResume() {
     super.onResume();
-    robot.forward();
   }
 
   @Override protected void onStart() {
